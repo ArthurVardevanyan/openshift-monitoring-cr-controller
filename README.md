@@ -28,7 +28,12 @@ You’ll need a Kubernetes cluster to run against. You can use [KIND](https://si
 
 Build and push your image to the location specified by `IMG`:
 
-```sh
+```bash
+go get -u
+go mod tidy
+```
+
+```bash
 # https://catalog.redhat.com/software/containers/ubi9-minimal/
 export KO_DEFAULTBASEIMAGE=registry.access.redhat.com/ubi9-minimal:9.1.0-1760
 export DATE=$(date --utc '+%Y%m%d-%H%M')

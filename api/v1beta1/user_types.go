@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,11 +26,31 @@ import (
 
 // UserSpec defines the desired state of User
 type UserSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	Alertmanager Alertmanager `json:"alertmanager,omitempty"`
+	Prometheus   Prometheus   `json:"prometheus,omitempty"`
+	ThanosRuler  ThanosRuler  `json:"thanosRuler,omitempty"`
+}
 
-	// Foo is an example field of User. Edit user_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+type Alertmanager struct {
+	Enabled                  bool                                  `json:"enabled,omitempty"`
+	EnableAlertmanagerConfig bool                                  `json:"enableAlertmanagerConfig,omitempty"`
+	NodeSelector             map[string]string                     `json:"nodeSelector,omitempty"`
+	Tolerations              []corev1.Toleration                   `json:"tolerations,omitempty"`
+	VolumeClaimTemplate      *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
+}
+type Prometheus struct {
+	NodeSelector        map[string]string                     `json:"nodeSelector,omitempty"`
+	Tolerations         []corev1.Toleration                   `json:"tolerations,omitempty"`
+	Retention           string                                `json:"retention,omitempty"`
+	EnforcedSampleLimit int                                   `json:"enforcedSampleLimit,omitempty"`
+	Resources           *corev1.ResourceRequirements          `json:"resources,omitempty"`
+	VolumeClaimTemplate *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
+}
+type ThanosRuler struct {
+	NodeSelector        map[string]string                     `json:"nodeSelector,omitempty"`
+	Tolerations         []corev1.Toleration                   `json:"tolerations,omitempty"`
+	Resources           *corev1.ResourceRequirements          `json:"resources,omitempty"`
+	VolumeClaimTemplate *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
 }
 
 // UserStatus defines the observed state of User

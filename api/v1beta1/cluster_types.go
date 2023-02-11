@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -25,11 +26,98 @@ import (
 
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	EnableUserWorkload    bool                  `json:"enableUserWorkload,omitempty"`
+	AlertmanagerMain      AlertmanagerMain      `json:"alertmanagerMain,omitempty"`
+	Grafana               Grafana               `json:"grafana,omitempty"`
+	K8SPrometheusAdapter  K8SPrometheusAdapter  `json:"k8sPrometheusAdapter,omitempty"`
+	KubeStateMetrics      KubeStateMetrics      `json:"kubeStateMetrics,omitempty"`
+	OpenshiftStateMetrics OpenshiftStateMetrics `json:"openshiftStateMetrics,omitempty"`
+	PrometheusK8S         PrometheusK8S         `json:"prometheusK8s,omitempty"`
+	PrometheusOperator    PrometheusOperator    `json:"prometheusOperator,omitempty"`
+	TelemeterClient       TelemeterClient       `json:"telemeterClient,omitempty"`
+	ThanosQuerier         ThanosQuerier         `json:"thanosQuerier,omitempty"`
+}
 
-	// Foo is an example field of Cluster. Edit cluster_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+type Metadata struct {
+}
+
+type Status struct {
+}
+
+type AlertmanagerMain struct {
+	EnableUserAlertmanagerConfig bool                                  `json:"enableUserAlertmanagerConfig,omitempty"`
+	NodeSelector                 map[string]string                     `json:"nodeSelector,omitempty"`
+	Resources                    *corev1.ResourceRequirements          `json:"resources,omitempty"`
+	Tolerations                  []corev1.Toleration                   `json:"tolerations,omitempty"`
+	VolumeClaimTemplate          *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
+}
+type Grafana struct {
+	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+}
+type K8SPrometheusAdapter struct {
+	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+}
+type KubeStateMetrics struct {
+	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+}
+type OpenshiftStateMetrics struct {
+	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+}
+type BearerToken struct {
+	Key  string `json:"key,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+type Ca struct {
+	Key  string `json:"key,omitempty"`
+	Name string `json:"name,omitempty"`
+}
+type TLSConfig struct {
+	ServerName         string `json:"ServerName,omitempty"`
+	Ca                 Ca     `json:"ca,omitempty"`
+	InsecureSkipVerify bool   `json:"insecureSkipVerify,omitempty"`
+}
+type AdditionalAlertManagerConfigs struct {
+	APIVersion    string      `json:"apiVersion,omitempty"`
+	BearerToken   BearerToken `json:"bearerToken,omitempty"`
+	PathPrefix    string      `json:"pathPrefix,omitempty"`
+	Scheme        string      `json:"scheme,omitempty"`
+	StaticConfigs []string    `json:"staticConfigs,omitempty"`
+	TLSConfig     TLSConfig   `json:"tlsConfig,omitempty"`
+}
+type ExternalLabels struct {
+	Cluster string `json:"cluster,omitempty"`
+}
+type PrometheusK8S struct {
+	AdditionalAlertManagerConfigs []AdditionalAlertManagerConfigs       `json:"additionalAlertManagerConfigs,omitempty"`
+	ExternalLabels                ExternalLabels                        `json:"externalLabels,omitempty"`
+	LogLevel                      string                                `json:"logLevel,omitempty"`
+	NodeSelector                  map[string]string                     `json:"nodeSelector,omitempty"`
+	Resources                     *corev1.ResourceRequirements          `json:"resources,omitempty"`
+	Retention                     string                                `json:"retention,omitempty"`
+	Tolerations                   []corev1.Toleration                   `json:"tolerations,omitempty"`
+	VolumeClaimTemplate           *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
+}
+type PrometheusOperator struct {
+	LogLevel     string              `json:"logLevel,omitempty"`
+	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
+	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+}
+type TelemeterClient struct {
+	ClusterID          string              `json:"clusterID,omitempty"`
+	NodeSelector       map[string]string   `json:"nodeSelector,omitempty"`
+	TelemeterServerURL string              `json:"telemeterServerURL,omitempty"`
+	Token              string              `json:"token,omitempty"`
+	Tolerations        []corev1.Toleration `json:"tolerations,omitempty"`
+}
+type ThanosQuerier struct {
+	LogLevel     string                       `json:"logLevel,omitempty"`
+	NodeSelector map[string]string            `json:"nodeSelector,omitempty"`
+	Resources    *corev1.ResourceRequirements `json:"resources,omitempty"`
+	Tolerations  []corev1.Toleration          `json:"tolerations,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster

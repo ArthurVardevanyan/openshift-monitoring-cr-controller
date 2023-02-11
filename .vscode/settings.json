@@ -26,10 +26,18 @@
         "editor.defaultFormatter": "redhat.vscode-yaml"
     },
     "cSpell.words": [
+        "alertmanager",
+        "apimachinery",
         "arthurvardevanyan",
+        "corev",
+        "deepcopy",
         "homelab",
         "kubebuilder",
         "kubeconfig",
+        "metav",
+        "subresource",
+        "thanos",
+        "Tolerations",
         "Vardevanyan"
     ],
 }
