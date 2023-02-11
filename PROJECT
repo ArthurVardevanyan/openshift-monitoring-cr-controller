@@ -7,4 +7,21 @@ layout:
 - go.kubebuilder.io/v3
 projectName: openshift-monitoring-cr-controller
 repo: github.com/ArthurVardevanyan/openshift-monitoring-cr
+resources:
+- api:
+    crdVersion: v1
+  controller: true
+  domain: arthurvardevanyan.com
+  group: monitoring
+  kind: Cluster
+  path: github.com/ArthurVardevanyan/openshift-monitoring-cr/api/v1beta1
+  version: v1beta1
+- api:
+    crdVersion: v1
+  controller: true
+  domain: arthurvardevanyan.com
+  group: monitoring
+  kind: User
+  path: github.com/ArthurVardevanyan/openshift-monitoring-cr/api/v1beta1
+  version: v1beta1
 version: "3"

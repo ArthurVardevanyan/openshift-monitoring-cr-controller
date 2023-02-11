@@ -1,0 +1,12 @@
+apiVersion: monitoring.arthurvardevanyan.com/v1beta1
+kind: User
+metadata:
+  labels:
+    app.kubernetes.io/name: user
+    app.kubernetes.io/instance: user-sample
+    app.kubernetes.io/part-of: openshift-monitoring-cr-controller
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: openshift-monitoring-cr-controller
+  name: user-sample
+spec:
+  # TODO(user): Add fields here
