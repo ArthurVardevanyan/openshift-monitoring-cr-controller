@@ -1,10 +1,8 @@
 # openshift-monitoring-cr-controller
 
-// TODO(user): Add simple overview of use/purpose
+This is an abstraction to convert the openshift monitoring, and openshift user workload monitoring configmaps into custom resources.
 
-## Description
-
-// TODO(user): An in-depth paragraph about your project and overview of use
+The Controller Inputs Two Custom Resources, and Converts them to ConfigMaps, for the cluster operator to pickup.
 
 ## Incepting Controller
 
@@ -20,9 +18,6 @@ kubebuilder create api --group monitoring --version v1beta1 --kind User --namesp
 ```
 
 ## Getting Started
-
-You’ll need a Kubernetes cluster to run against. You can use [KIND](https://sigs.k8s.io/kind) to get a local cluster for testing, or run against a remote cluster.
-**Note:** Your controller will automatically use the current context in your kubeconfig file (i.e. whatever cluster `kubectl cluster-info` shows).
 
 ### Building Image
 

@@ -54,7 +54,7 @@ type ClusterReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.14.1/pkg/reconcile
 func (r *ClusterReconciler) Reconcile(reconcilerContext context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := log.FromContext(reconcilerContext)
-	log.V(1).Info(req.Namespace + "-" + req.Name)
+	log.V(1).Info(req.Name)
 
 	// Incept Object
 	var monitoring monitoringv1beta1.Cluster
@@ -138,7 +138,7 @@ func (r *ClusterReconciler) Reconcile(reconcilerContext context.Context, req ctr
 		log.V(1).Info("Create ConfigMap")
 		r.Create(reconcilerContext, &configMap)
 	} else {
-		log.V(1).Info("Delete ConfigMap")
+		log.V(1).Info("Update ConfigMap")
 		r.Update(reconcilerContext, &configMap)
 	}
 
