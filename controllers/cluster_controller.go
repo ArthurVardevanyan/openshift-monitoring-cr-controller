@@ -24,7 +24,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	monitoringv1beta1 "github.com/ArthurVardevanyan/openshift-monitoring-cr/api/v1beta1"
+	monitoringv1beta1 "github.com/ArthurVardevanyan/openshift-monitoring-cr-controller/api/v1beta1"
 )
 
 // ClusterReconciler reconciles a Cluster object

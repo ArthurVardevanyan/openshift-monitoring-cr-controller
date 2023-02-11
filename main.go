@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	monitoringv1beta1 "github.com/ArthurVardevanyan/openshift-monitoring-cr/api/v1beta1"
-	"github.com/ArthurVardevanyan/openshift-monitoring-cr/controllers"
+	monitoringv1beta1 "github.com/ArthurVardevanyan/openshift-monitoring-cr-controller/api/v1beta1"
+	"github.com/ArthurVardevanyan/openshift-monitoring-cr-controller/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
