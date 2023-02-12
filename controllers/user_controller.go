@@ -87,14 +87,25 @@ func (r *UserReconciler) Reconcile(reconcilerContext context.Context, req ctrl.R
 	}
 	configMapData["config.yaml"] = string(MonitoringYaml)
 
+	var ownerRef = metav1.OwnerReference{
+		APIVersion:         monitoring.APIVersion,
+		Kind:               monitoring.Kind,
+		Name:               monitoring.Name,
+		UID:                monitoring.UID,
+		Controller:         BoolPointer(true),
+		BlockOwnerDeletion: BoolPointer(true),
+	}
+	ownerReference := []metav1.OwnerReference{ownerRef}
+
 	configMap := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      configMapName,
-			Namespace: namespace,
+			Name:            configMapName,
+			Namespace:       namespace,
+			OwnerReferences: ownerReference,
 		},
 		Data: configMapData,
 	}

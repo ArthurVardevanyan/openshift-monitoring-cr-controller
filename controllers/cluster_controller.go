@@ -32,6 +32,10 @@ import (
 	monitoringv1beta1 "github.com/ArthurVardevanyan/openshift-monitoring-cr-controller/api/v1beta1"
 )
 
+func BoolPointer(b bool) *bool {
+	return &b
+}
+
 // ClusterReconciler reconciles a Cluster object
 type ClusterReconciler struct {
 	client.Client
@@ -87,14 +91,25 @@ func (r *ClusterReconciler) Reconcile(reconcilerContext context.Context, req ctr
 	}
 	configMapData["config.yaml"] = string(MonitoringYaml)
 
+	var ownerRef = metav1.OwnerReference{
+		APIVersion:         monitoring.APIVersion,
+		Kind:               monitoring.Kind,
+		Name:               monitoring.Name,
+		UID:                monitoring.UID,
+		Controller:         BoolPointer(true),
+		BlockOwnerDeletion: BoolPointer(true),
+	}
+	ownerReference := []metav1.OwnerReference{ownerRef}
+
 	configMap := corev1.ConfigMap{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "ConfigMap",
 			APIVersion: "v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      configMapName,
-			Namespace: namespace,
+			Name:            configMapName,
+			Namespace:       namespace,
+			OwnerReferences: ownerReference,
 		},
 		Data: configMapData,
 	}
