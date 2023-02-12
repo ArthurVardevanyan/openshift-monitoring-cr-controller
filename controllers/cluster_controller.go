@@ -74,6 +74,11 @@ func (r *ClusterReconciler) Reconcile(reconcilerContext context.Context, req ctr
 		configMapName string = "cluster-monitoring-config"
 	)
 
+	if req.Name != configMapName {
+		log.V(1).Info("Invalid Object Name!")
+		r.Delete(reconcilerContext, &monitoring)
+	}
+
 	configMapData := make(map[string]string)
 	MonitoringYaml, err := yaml.Marshal(&monitoring.Spec)
 	if err != nil {

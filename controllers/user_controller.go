@@ -74,6 +74,11 @@ func (r *UserReconciler) Reconcile(reconcilerContext context.Context, req ctrl.R
 		configMapName string = "user-workload-monitoring-config"
 	)
 
+	if req.Name != configMapName {
+		log.V(1).Info("Invalid Object Name!")
+		r.Delete(reconcilerContext, &monitoring)
+	}
+
 	configMapData := make(map[string]string)
 	MonitoringYaml, err := yaml.Marshal(&monitoring.Spec)
 	if err != nil {
