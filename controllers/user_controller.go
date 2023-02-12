@@ -23,7 +23,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -77,12 +76,14 @@ func (r *UserReconciler) Reconcile(reconcilerContext context.Context, req ctrl.R
 	if req.Name != configMapName {
 		log.V(1).Info("Invalid Object Name!")
 		r.Delete(reconcilerContext, &monitoring)
+		return ctrl.Result{}, nil
 	}
 
 	configMapData := make(map[string]string)
 	MonitoringYaml, err := yaml.Marshal(&monitoring.Spec)
 	if err != nil {
 		log.Error(err, "Unable to Marshal ConfigMap Struct to Yaml!")
+		return ctrl.Result{}, err
 	}
 	configMapData["config.yaml"] = string(MonitoringYaml)
 
@@ -123,6 +124,7 @@ func (r *UserReconciler) Reconcile(reconcilerContext context.Context, req ctrl.R
 			err := r.Delete(reconcilerContext, &configMap)
 			if err != nil {
 				log.Error(err, "Unable to Delete ConfigMap!")
+				return ctrl.Result{}, err
 			}
 
 			// remove our finalizer from the list and update it.
@@ -138,13 +140,12 @@ func (r *UserReconciler) Reconcile(reconcilerContext context.Context, req ctrl.R
 	}
 
 	// https://medium.com/@aneeshputtur/kubernetes-operators-with-external-configmap-b972c9c36bbe
-	err = r.Get(reconcilerContext, types.NamespacedName{Name: configMapName, Namespace: namespace}, &corev1.ConfigMap{})
+	err = r.Create(reconcilerContext, &configMap)
 	if err != nil {
-		log.V(1).Info("Create ConfigMap")
-		r.Create(reconcilerContext, &configMap)
-	} else {
 		log.V(1).Info("Update ConfigMap")
 		r.Update(reconcilerContext, &configMap)
+	} else {
+		log.V(1).Info("Create ConfigMap")
 	}
 
 	return ctrl.Result{}, nil

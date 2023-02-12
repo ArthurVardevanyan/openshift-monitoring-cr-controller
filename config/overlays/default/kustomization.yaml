@@ -17,3 +17,9 @@ patches:
       - op: replace
         path: /metadata/namespace
         value: openshift-user-workload-monitoring
+      - op: replace
+        path: /subjects/0/namespace
+        value: openshift-monitoring
+      - op: replace
+        path: /subjects/0/name
+        value: openshift-monitoring-cr-controller-manager
