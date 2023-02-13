@@ -28,7 +28,7 @@ spec:
   selector:
     matchLabels:
       control-plane: controller-manager
-  replicas: 1
+  replicas: 2
   template:
     metadata:
       annotations:
@@ -56,15 +56,6 @@ spec:
       #             operator: In
       #             values:
       #               - linux
-      securityContext:
-        runAsNonRoot: true
-        # TODO(user): For common cases that do not require escalating privileges
-        # it is recommended to ensure that all your Pods/Containers are restrictive.
-        # More info: https://kubernetes.io/docs/concepts/security/pod-security-standards/#restricted
-        # Please uncomment the following code if your project does NOT have to work on old Kubernetes
-        # versions < 1.19 or on vendors versions which do NOT support this field by default (i.e. Openshift < 4.11 ).
-        # seccompProfile:
-        #   type: RuntimeDefault
       containers:
         - name: manager
           # command:
@@ -73,10 +64,14 @@ spec:
             - --leader-elect
           image: controller:latest
           securityContext:
+            runAsNonRoot: true
+            readOnlyRootFilesystem: true
             allowPrivilegeEscalation: false
+            seccompProfile:
+              type: RuntimeDefault
             capabilities:
               drop:
-                - "ALL"
+                - all
           livenessProbe:
             httpGet:
               path: /healthz
@@ -89,11 +84,9 @@ spec:
               port: 8081
             initialDelaySeconds: 5
             periodSeconds: 10
-          # TODO(user): Configure the resources accordingly based on the project requirements.
-          # More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
           resources:
             limits:
-              cpu: 500m
+              cpu: 100m
               memory: 128Mi
             requests:
               cpu: 10m
