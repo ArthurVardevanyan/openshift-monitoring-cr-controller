@@ -88,12 +88,10 @@ type AdditionalAlertManagerConfigs struct {
 	StaticConfigs []string    `json:"staticConfigs,omitempty"`
 	TLSConfig     TLSConfig   `json:"tlsConfig,omitempty"`
 }
-type ExternalLabels struct {
-	Cluster string `json:"cluster,omitempty"`
-}
+
 type PrometheusK8S struct {
 	AdditionalAlertManagerConfigs []AdditionalAlertManagerConfigs       `json:"additionalAlertManagerConfigs,omitempty"`
-	ExternalLabels                ExternalLabels                        `json:"externalLabels,omitempty"`
+	ExternalLabels                map[string]string                     `json:"externalLabels,omitempty"`
 	LogLevel                      string                                `json:"logLevel,omitempty"`
 	NodeSelector                  map[string]string                     `json:"nodeSelector,omitempty"`
 	Resources                     *corev1.ResourceRequirements          `json:"resources,omitempty"`

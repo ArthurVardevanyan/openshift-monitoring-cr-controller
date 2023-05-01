@@ -587,9 +587,8 @@ spec:
                       type: object
                     type: array
                   externalLabels:
-                    properties:
-                      cluster:
-                        type: string
+                    additionalProperties:
+                      type: string
                     type: object
                   logLevel:
                     type: string
