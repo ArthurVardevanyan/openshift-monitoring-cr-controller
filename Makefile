@@ -2,7 +2,12 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.26.0
+ENVTEST_K8S_VERSION = 1.28.0
+export KO_DOCKER_REPO=registry.arthurvardevanyan.com/homelab/openshift-monitoring-cr-controller
+# https://catalog.redhat.com/software/containers/ubi9/ubi-minimal/615bd9b4075b022acc111bf5?architecture=amd64&image=652fc5a903899c8ddcf105be
+export KO_DEFAULTBASEIMAGE=registry.access.redhat.com/ubi9-minimal:9.2-750.1697625013
+TAG ?= $(shell date --utc '+%Y%m%d-%H%M')
+EXPIRE ?= 1d
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -67,6 +72,10 @@ build: manifests generate fmt vet ## Build manager binary.
 .PHONY: run
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
+
+.PHONY: ko-build
+ko-build: test ## Build docker image with the manager.
+	ko build --platform=linux/amd64 --bare --sbom none --image-label quay.expires-after="${EXPIRE}" --tags "${TAG}"
 
 # If you wish built the manager image targeting other platforms you can use the --platform flag.
 # (i.e. docker build --platform linux/arm64 ). However, you must enable docker buildKit for it.
