@@ -16,10 +16,6 @@ spec:
       value: "{{ repo_url }}"
     - name: git-commit
       value: "{{ revision }}"
-    - name: DOCKERFILE
-      value: "./containers/toolbox/containerfile"
-    - name: IMAGE
-      value: "registry.arthurvardevanyan.com/homelab/toolbox:latest"
   pipelineSpec:
     params:
       - name: git-url
