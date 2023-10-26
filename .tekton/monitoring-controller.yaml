@@ -16,10 +16,6 @@ spec:
       value: "{{ repo_url }}"
     - name: git-commit
       value: "{{ revision }}"
-    - name: DOCKERFILE
-      value: "./containers/toolbox/containerfile"
-    - name: IMAGE
-      value: "registry.arthurvardevanyan.com/homelab/toolbox:latest"
   pipelineSpec:
     params:
       - name: git-url
@@ -67,9 +63,11 @@ spec:
               requests:
                 memory: 500Mi
                 cpu: 500m
+                ephemeral-storage: 2Gi
               limits:
                 cpu: "4"
                 memory: 5Gi
+                ephemeral-storage: 2Gi
             securityContext:
               privileged: false
               readOnlyRootFilesystem: true
