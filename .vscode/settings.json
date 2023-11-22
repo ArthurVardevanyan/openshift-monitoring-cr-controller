@@ -35,6 +35,7 @@
         "corev",
         "deepcopy",
         "finalizers",
+        "gomod",
         "homelab",
         "kubebuilder",
         "kubeconfig",
