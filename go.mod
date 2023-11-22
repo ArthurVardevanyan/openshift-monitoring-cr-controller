@@ -1,6 +1,6 @@
 module github.com/ArthurVardevanyan/openshift-monitoring-cr-controller
 
-go 1.21.4
+go 1.21
 
 require (
 	github.com/onsi/ginkgo/v2 v2.13.0
