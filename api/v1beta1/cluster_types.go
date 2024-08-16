@@ -27,14 +27,14 @@ import (
 // ClusterSpec defines the desired state of Cluster
 type ClusterSpec struct {
 	EnableUserWorkload    bool                  `json:"enableUserWorkload,omitempty"`
-	AlertmanagerMain      AlertmanagerMain      `json:"alertmanagerMain,omitempty"`
-	Grafana               Grafana               `json:"grafana,omitempty"`
-	K8SPrometheusAdapter  K8SPrometheusAdapter  `json:"k8sPrometheusAdapter,omitempty"`
-	KubeStateMetrics      KubeStateMetrics      `json:"kubeStateMetrics,omitempty"`
-	OpenshiftStateMetrics OpenshiftStateMetrics `json:"openshiftStateMetrics,omitempty"`
-	PrometheusK8S         PrometheusK8S         `json:"prometheusK8s,omitempty"`
 	PrometheusOperator    PrometheusOperator    `json:"prometheusOperator,omitempty"`
+	PrometheusK8S         PrometheusK8S         `json:"prometheusK8s,omitempty"`
+	AlertmanagerMain      AlertmanagerMain      `json:"alertmanagerMain,omitempty"`
+	KubeStateMetrics      KubeStateMetrics      `json:"kubeStateMetrics,omitempty"`
+	MonitoringPlugin      MonitoringPlugin      `json:"monitoringPlugin,omitempty"`
+	OpenshiftStateMetrics OpenshiftStateMetrics `json:"openshiftStateMetrics,omitempty"`
 	TelemeterClient       TelemeterClient       `json:"telemeterClient,omitempty"`
+	MetricsServer         MetricsServer         `json:"metricsServer,omitempty"`
 	ThanosQuerier         ThanosQuerier         `json:"thanosQuerier,omitempty"`
 }
 
@@ -45,25 +45,30 @@ type Status struct {
 }
 
 type AlertmanagerMain struct {
+	LogLevel                     string                                `json:"logLevel,omitempty"`
 	EnableUserAlertmanagerConfig bool                                  `json:"enableUserAlertmanagerConfig,omitempty"`
 	NodeSelector                 map[string]string                     `json:"nodeSelector,omitempty"`
 	Resources                    *corev1.ResourceRequirements          `json:"resources,omitempty"`
 	Tolerations                  []corev1.Toleration                   `json:"tolerations,omitempty"`
 	VolumeClaimTemplate          *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
 }
-type Grafana struct {
+type MonitoringPlugin struct {
+	LogLevel     string              `json:"logLevel,omitempty"`
 	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
 	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
 }
-type K8SPrometheusAdapter struct {
+type MetricsServer struct {
+	LogLevel     string              `json:"logLevel,omitempty"`
 	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
 	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
 }
 type KubeStateMetrics struct {
+	LogLevel     string              `json:"logLevel,omitempty"`
 	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
 	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
 }
 type OpenshiftStateMetrics struct {
+	LogLevel     string              `json:"logLevel,omitempty"`
 	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
 	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
 }
@@ -105,6 +110,7 @@ type PrometheusOperator struct {
 	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
 }
 type TelemeterClient struct {
+	LogLevel           string              `json:"logLevel,omitempty"`
 	ClusterID          string              `json:"clusterID,omitempty"`
 	NodeSelector       map[string]string   `json:"nodeSelector,omitempty"`
 	TelemeterServerURL string              `json:"telemeterServerURL,omitempty"`
