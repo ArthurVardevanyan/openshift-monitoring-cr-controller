@@ -87,6 +87,24 @@ func (r *UserReconciler) Reconcile(reconcilerContext context.Context, req ctrl.R
 	}
 	configMapData["config.yaml"] = string(MonitoringYaml)
 
+	// Parse the YAML string into a map
+	var parsedData map[string]interface{}
+	err = yaml.Unmarshal([]byte(configMapData["config.yaml"]), &parsedData)
+	if err != nil {
+		log.Error(err, "Unable to Unmarshal ConfigMap Yaml to Struct!")
+		return ctrl.Result{}, err
+	}
+
+	removeMetadata(parsedData)
+
+	// Convert the modified map back to YAML
+	modifiedYaml, err := yaml.Marshal(parsedData)
+	if err != nil {
+		log.Error(err, "Unable to Marshal Modified ConfigMap Struct to Yaml!")
+		return ctrl.Result{}, err
+	}
+	configMapData["config.yaml"] = string(modifiedYaml)
+
 	var ownerRef = metav1.OwnerReference{
 		APIVersion:         monitoring.APIVersion,
 		Kind:               monitoring.Kind,
