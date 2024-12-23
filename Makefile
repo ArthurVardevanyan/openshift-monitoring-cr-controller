@@ -1,11 +1,15 @@
-
+WORKSPACE_RESULTS_PATH ?= /tmp/image
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.31.0
+ENVTEST_K8S_VERSION = 1.32.0
+## Tool Versions
+KUSTOMIZE_VERSION ?= v5.5.0
+CONTROLLER_TOOLS_VERSION ?= v0.16.5
+## KO
 export KO_DOCKER_REPO=registry.arthurvardevanyan.com/homelab/openshift-monitoring-cr-controller
 # https://catalog.redhat.com/software/containers/ubi9/ubi-micro/615bdf943f6014fa45ae1b58?architecture=amd64&image=662a8edd22c80ead7411ec6c&container-tabs=overview
-export KO_DEFAULTBASEIMAGE=registry.access.redhat.com/ubi9-micro:9.4-13
+export KO_DEFAULTBASEIMAGE=registry.access.redhat.com/ubi9-micro:9.5-1734513256@sha256:388e92e6f4c388ddb2b8ece8a964c7de76af8b584f3e10284fc828c056a8ff29
 TAG ?= $(shell date --utc '+%Y%m%d-%H%M')
 EXPIRE ?= 26w
 
@@ -76,6 +80,7 @@ ko-build: test ## Build docker image with the manager.
 .PHONY: ko-build-pipeline
 ko-build-pipeline: test-pipeline ## Build docker image with the manager.
 	ko build --platform=linux/amd64 --bare --sbom none --image-label quay.expires-after="${EXPIRE}" --tags "${TAG}"
+	echo "${KO_DOCKER_REPO}:${TAG}" > "${WORKSPACE_RESULTS_PATH}"
 
 .PHONY: build
 build: manifests generate fmt vet ## Build manager binary.
@@ -149,9 +154,7 @@ KUSTOMIZE ?= $(LOCALBIN)/kustomize
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 
-## Tool Versions
-KUSTOMIZE_VERSION ?= v5.4.3
-CONTROLLER_TOOLS_VERSION ?= v0.16.1
+
 
 KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh"
 .PHONY: kustomize
