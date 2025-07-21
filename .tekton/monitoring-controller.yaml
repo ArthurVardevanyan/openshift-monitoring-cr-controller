@@ -4,7 +4,7 @@ kind: PipelineRun
 metadata:
   name: monitoring-controller
   annotations:
-    io.kubernetes.cri-o.TrySkipVolumeSELinuxLabel: "true" 
+    # io.kubernetes.cri-o.TrySkipVolumeSELinuxLabel: "true" 
     pipelinesascode.tekton.dev/max-keep-runs: "1"
     pipelinesascode.tekton.dev/on-cel-expression: |
       event == "pull_request" && target_branch == "main"
@@ -131,7 +131,7 @@ spec:
   taskRunTemplate:
     serviceAccountName: pipeline
     podTemplate:
-      runtimeClassName: selinux
+      # runtimeClassName: selinux
       securityContext:
         fsGroupChangePolicy: OnRootMismatch 
   workspaces:
