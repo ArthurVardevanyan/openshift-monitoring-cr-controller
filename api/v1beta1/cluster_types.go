@@ -95,7 +95,7 @@ type AdditionalAlertManagerConfigs struct {
 }
 
 type PrometheusK8S struct {
-	AdditionalAlertManagerConfigs []AdditionalAlertManagerConfigs       `json:"additionalAlertManagerConfigs,omitempty"`
+	AdditionalAlertManagerConfigs []AdditionalAlertManagerConfigs       `json:"additionalAlertmanagerConfigs,omitempty"`
 	ExternalLabels                map[string]string                     `json:"externalLabels,omitempty"`
 	LogLevel                      string                                `json:"logLevel,omitempty"`
 	NodeSelector                  map[string]string                     `json:"nodeSelector,omitempty"`
