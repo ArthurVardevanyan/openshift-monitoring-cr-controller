@@ -103,7 +103,11 @@ spec:
                   value: $(results.IMAGE.path)
               volumeMounts:
                 - name: cache
+                  mountPath: /go/pkg
+                  subpath: go
+                - name: cache
                   mountPath: /tmp
+                  subpath: tmp
               script: |
                 set -o errexit
                 set -o nounset
