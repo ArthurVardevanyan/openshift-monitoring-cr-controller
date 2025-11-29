@@ -4,11 +4,10 @@ kind: PipelineRun
 metadata:
   name: monitoring-controller
   annotations:
-    # io.kubernetes.cri-o.TrySkipVolumeSELinuxLabel: "true" 
+    io.kubernetes.cri-o.TrySkipVolumeSELinuxLabel: "true"
+    pipelinesascode.tekton.dev/on-event: "[pull_request]"
+    pipelinesascode.tekton.dev/on-target-branch: "[main]"
     pipelinesascode.tekton.dev/max-keep-runs: "1"
-    pipelinesascode.tekton.dev/on-cel-expression: |
-      event == "pull_request" && target_branch == "main"
-    # event == "pull_request" &&
     pipelinesascode.tekton.dev/target-namespace: "homelab"
     pipelinesascode.tekton.dev/task: "https://raw.githubusercontent.com/ArthurVardevanyan/HomeLab/main/tekton/tasks/git-clone/0.9.1/git-clone.yaml"
     pipelinesascode.tekton.dev/task-1: "https://raw.githubusercontent.com/ArthurVardevanyan/HomeLab/main/tekton/base/clair-action/clair-action-task.yaml"
@@ -131,13 +130,12 @@ spec:
         params:
           - name: IMAGE
             value: $(tasks.test-build.results.IMAGE)
-            
   taskRunTemplate:
     serviceAccountName: pipeline
     podTemplate:
-      # runtimeClassName: selinux
+      runtimeClassName: selinux
       securityContext:
-        fsGroupChangePolicy: OnRootMismatch 
+        fsGroupChangePolicy: OnRootMismatch
   workspaces:
     - name: data
       volumeClaimTemplate:
