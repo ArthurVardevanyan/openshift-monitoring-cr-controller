@@ -156,7 +156,7 @@ spec:
                   export NEW_TAG=$(date -u +"%Y.%m.%d.%H%M%S")-pr${GIT_PR}
 
                   echo "Promoting ${REPO}:${PR_TAG} to ${REPO}:${NEW_TAG}"
-                  skopeo copy docker://${REPO}:${PR_TAG} docker://${REPO}:${NEW_TAG} --all
+                  skopeo copy docker://${REPO}:${PR_TAG} docker://${REPO}:${NEW_TAG} --all --preserve-digests
                   echo "${REPO}:${NEW_TAG}" > ${WORKSPACE_RESULTS_PATH}
                 else
                   GIT_PR=$(params.pull-request-number)
