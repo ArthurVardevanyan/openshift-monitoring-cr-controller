@@ -153,7 +153,7 @@ spec:
 
                   export REPO=$(grep "export KO_DOCKER_REPO" Makefile | cut -d= -f2)
                   export PR_TAG="pr-${GIT_PR}-${GIT_SHA}"
-                  export NEW_TAG=$(date -u +"%Y%m%d%H%M%S")-pr${GIT_PR}
+                  export NEW_TAG=$(date -u +"%Y.%m.%d.%H%M%S")-pr${GIT_PR}
 
                   echo "Promoting ${REPO}:${PR_TAG} to ${REPO}:${NEW_TAG}"
                   skopeo copy docker://${REPO}:${PR_TAG} docker://${REPO}:${NEW_TAG} --all
