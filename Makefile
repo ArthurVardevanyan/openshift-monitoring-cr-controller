@@ -10,7 +10,7 @@ CONTROLLER_TOOLS_VERSION ?= v0.18.0
 export KO_DOCKER_REPO=registry.arthurvardevanyan.com/homelab/openshift-monitoring-cr-controller
 # https://catalog.redhat.com/software/containers/ubi9/ubi-micro/615bdf943f6014fa45ae1b58?architecture=amd64&image=662a8edd22c80ead7411ec6c&container-tabs=overview
 export KO_DEFAULTBASEIMAGE=cgr.dev/chainguard/static:latest
-TAG ?= $(shell date --utc '+%Y%m%d-%H%M')
+TAG ?= $(shell date --utc '+"%Y.%m.%d.%H%M%S"'-local)
 EXPIRE ?= 26w
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
