@@ -5,7 +5,7 @@ metadata:
   name: monitoring-controller
   annotations:
     io.kubernetes.cri-o.TrySkipVolumeSELinuxLabel: "true"
-    pipelinesascode.tekton.dev/on-event: "[pull_request]"
+    pipelinesascode.tekton.dev/on-event: "[pull_request, push]"
     pipelinesascode.tekton.dev/on-target-branch: "[main]"
     pipelinesascode.tekton.dev/max-keep-runs: "1"
     pipelinesascode.tekton.dev/target-namespace: "homelab"
@@ -17,6 +17,8 @@ spec:
       value: "{{ repo_url }}"
     - name: git-commit
       value: "{{ revision }}"
+    - name: pull-request-number
+      value: "{{ pull_request_number }}"
   pipelineSpec:
     params:
       - name: git-url
@@ -24,6 +26,9 @@ spec:
         type: string
       - name: git-commit
         type: string
+      - name: pull-request-number
+        type: string
+        default: ""
 
     results:
       - description: The common vulnerabilities and exposures (CVE) result
@@ -59,7 +64,15 @@ spec:
         params:
           - name: revision
             value: $(params.git-commit)
+          - name: pull-request-number
+            value: $(params.pull-request-number)
         taskSpec:
+          params:
+            - name: revision
+              type: string
+            - name: pull-request-number
+              type: string
+              default: ""
           results:
             - name: IMAGE
           workspaces:
@@ -95,7 +108,9 @@ spec:
               image: registry.arthurvardevanyan.com/homelab/toolbox:not_latest
               env:
                 - name: TAG
-                  value: $(params.revision)
+                  value: pr-$(params.pull-request-number)-$(params.revision)
+                - name: PR_NUMBER
+                  value:
                 - name: WORKSPACE_DATA_PATH
                   value: $(workspaces.output.path)
                 - name: WORKSPACE_RESULTS_PATH
