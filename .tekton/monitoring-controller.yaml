@@ -150,14 +150,16 @@ spec:
                   GIT_PR=$(gh pr list --repo $(params.git-url) --search "$(params.revision)" --state merged --json url | jq --raw-output '.[] | .url' | rev | cut -d/ -f1 | rev)
                   echo "Get PR SHA"
                   GIT_SHA=$(gh pr view $GIT_PR --repo $(params.git-url) --json headRefOid --jq .headRefOid)
+                  GIT_SHA_SHORT=$(git rev-parse --short ${GIT_SHA})
 
                   export REPO=$(grep "export KO_DOCKER_REPO" Makefile | cut -d= -f2)
-                  export PR_TAG=$(skopeo list-tags docker://${REPO} | jq -r '.Tags[]' | grep -E ".*-pr-${GIT_PR}-${GIT_SHA}$" | sort -r | head -n 1)
+                  export PR_TAG=$(skopeo list-tags docker://${REPO} | jq -r '.Tags[]' | grep -E ".*-pr-${GIT_PR}-${GIT_SHA_SHORT}$" | sort -r | head -n 1)
                   if [ -z "${PR_TAG}" ]; then
-                    echo "Failed to find PR tag for ${GIT_PR}-${GIT_SHA}"
+                    echo "Failed to find PR tag for ${GIT_PR}-${GIT_SHA_SHORT}"
                     exit 1
                   fi
-                  export NEW_TAG=$(date -u +"%Y.%m.%d.%H%M%S")-push-${GIT_PR} #-$(params.revision)
+                  CURRENT_SHA_SHORT=$(git rev-parse --short HEAD)
+                  export NEW_TAG=$(date -u +"%Y.%m.%d.%H%M%S")-push-${GIT_PR}-${CURRENT_SHA_SHORT}
 
                   echo "Promoting ${REPO}:${PR_TAG} to ${REPO}:${NEW_TAG}"
                   skopeo copy docker://${REPO}:${PR_TAG} docker://${REPO}:${NEW_TAG} --multi-arch all --preserve-digests
@@ -165,7 +167,8 @@ spec:
                 else
                   GIT_PR=$(params.pull-request-number)
                   GIT_SHA=$(params.revision)
-                  export TAG="$(date -u +"%Y.%m.%d.%H%M%S")-pr-${GIT_PR}-${GIT_SHA}"
+                  GIT_SHA_SHORT=$(git rev-parse --short ${GIT_SHA})
+                  export TAG="$(date -u +"%Y.%m.%d.%H%M%S")-pr-${GIT_PR}-${GIT_SHA_SHORT}"
                   make ko-build-pipeline
                 fi
 
