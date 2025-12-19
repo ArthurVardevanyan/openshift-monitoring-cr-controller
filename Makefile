@@ -1,17 +1,19 @@
-WORKSPACE_RESULTS_PATH ?= /tmp/image
-# Image URL to use all building/pushing image targets
-IMG ?= controller:latest
-# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
-ENVTEST_K8S_VERSION = 1.33.2
-## Tool Versions
-KUSTOMIZE_VERSION ?= v5.7.1
-CONTROLLER_TOOLS_VERSION ?= v0.18.0
-## KO
-export KO_DOCKER_REPO=registry.arthurvardevanyan.com/homelab/openshift-monitoring-cr-controller
-# https://catalog.redhat.com/software/containers/ubi9/ubi-micro/615bdf943f6014fa45ae1b58?architecture=amd64&image=662a8edd22c80ead7411ec6c&container-tabs=overview
-export KO_DEFAULTBASEIMAGE=cgr.dev/chainguard/static:latest
 TAG ?= $(shell date --utc '+"%Y.%m.%d.%H%M%S"'-local)
 EXPIRE ?= 26w
+WORKSPACE_RESULTS_PATH ?= /tmp/image
+# Image URL to use all building/pushing image targets
+IMG ?= registry.arthurvardevanyan.com/homelab/openshift-monitoring-cr-controller:$(TAG)
+# ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
+# https://github.com/kubernetes-sigs/controller-tools/blob/main/envtest-releases.yaml
+ENVTEST_K8S_VERSION = 1.34.1
+## Tool Versions
+# https://github.com/kubernetes-sigs/kustomize/releases
+KUSTOMIZE_VERSION ?= v5.8.0
+# https://github.com/kubernetes-sigs/controller-tools/releases
+CONTROLLER_TOOLS_VERSION ?= v0.20.0
+export KO_DOCKER_REPO=$(shell echo $(IMG) | cut -d: -f1)
+# https://catalog.redhat.com/software/containers/ubi9/ubi-micro/615bdf943f6014fa45ae1b58?architecture=amd64&image=662a8edd22c80ead7411ec6c&container-tabs=overview
+export KO_DEFAULTBASEIMAGE=cgr.dev/chainguard/static
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))

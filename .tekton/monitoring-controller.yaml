@@ -219,7 +219,7 @@ spec:
                   GIT_SHA=$(gh pr view "$GIT_PR" --repo "${PARAM_GIT_URL}" --json headRefOid --jq .headRefOid)
                   GIT_SHA_SHORT=$(git rev-parse --short "${GIT_SHA}")
 
-                  REPO=$(grep "export KO_DOCKER_REPO" Makefile | cut -d= -f2)
+                  REPO=$(sed -n 's/^IMG ?= //p' Makefile | cut -d: -f1)
                   export REPO
                   PR_TAG=$(skopeo list-tags docker://"${REPO}" | jq -r '.Tags[]' | grep -E ".*-pr-${GIT_PR}-${GIT_SHA_SHORT}$" | sort -r | head -n 1)
                   export PR_TAG
