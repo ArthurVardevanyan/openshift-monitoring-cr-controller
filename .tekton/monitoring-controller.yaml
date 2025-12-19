@@ -95,7 +95,7 @@ spec:
               optional: false
           stepTemplate:
             name: stepTemplate
-            resources:
+            computeResources:
               requests:
                 memory: 500Mi
                 cpu: 500m
@@ -126,6 +126,14 @@ spec:
                   value: $(workspaces.output.path)
                 - name: WORKSPACE_RESULTS_PATH
                   value: $(results.IMAGE.path)
+                - name: PARAM_GIT_URL
+                  value: $(params.git-url)
+                - name: PARAM_REVISION
+                  value: $(params.revision)
+                - name: PARAM_PULL_REQUEST_NUMBER
+                  value: $(params.pull-request-number)
+                - name: PARAM_EVENT
+                  value: $(params.event)
               volumeMounts:
                 - name: cache
                   mountPath: /go/pkg
@@ -134,42 +142,101 @@ spec:
                   mountPath: /tmp
                   subpath: tmp
               script: |
+                #!/bin/bash
                 set -o errexit
                 set -o nounset
                 set -o pipefail
 
-                cd ${WORKSPACE_DATA_PATH}
+                calculate_next_version() {
+                  echo "Calculating SemVer tag..."
+                  git fetch --tags
+                  LATEST_RELEASE=$(gh release list --repo "${PARAM_GIT_URL}" --limit 1 --json tagName --jq '.[0].tagName')
+                  if [ -z "$LATEST_RELEASE" ]; then LATEST_RELEASE="v0.0.0"; fi
+                  echo "Latest Release: $LATEST_RELEASE"
+
+                  if [ "$LATEST_RELEASE" = "v0.0.0" ] && ! git rev-parse "v0.0.0" >/dev/null 2>&1; then
+                      COMMITS=$(git log HEAD --pretty=%B)
+                  else
+                      COMMITS=$(git log "${LATEST_RELEASE}..HEAD" --pretty=%B)
+                  fi
+
+                  BUMP="patch"
+                  if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+                    BUMP="major"
+                  elif echo "$COMMITS" | grep -qE "^[a-z]+(\(.*\))?!:"; then
+                    BUMP="major"
+                  elif echo "$COMMITS" | grep -qE "^feat(\(.*\))?:"; then
+                    BUMP="minor"
+                  fi
+
+                  VERSION=${LATEST_RELEASE#v}
+                  MAJOR=$(echo "$VERSION" | cut -d. -f1)
+                  MINOR=$(echo "$VERSION" | cut -d. -f2)
+                  PATCH=$(echo "$VERSION" | cut -d. -f3)
+                  MAJOR=${MAJOR:-0}
+                  MINOR=${MINOR:-0}
+                  PATCH=${PATCH:-0}
+
+                  if [ "$BUMP" = "major" ]; then
+                    MAJOR=$((MAJOR+1))
+                    MINOR=0
+                    PATCH=0
+                  elif [ "$BUMP" = "minor" ]; then
+                    MINOR=$((MINOR+1))
+                    PATCH=0
+                  else
+                    PATCH=$((PATCH+1))
+                  fi
+
+                  export NEW_SEMVER="v$MAJOR.$MINOR.$PATCH"
+                  echo "Next SemVer: $NEW_SEMVER"
+                }
+
+                cd "${WORKSPACE_DATA_PATH}"
                 git config --global --add safe.directory "${WORKSPACE_DATA_PATH}"
 
                 gh auth login --hostname "github.com" --with-token <"$(workspaces.basic-auth.path)/git-provider-token"
 
                 export GIT_PR
                 export GIT_SHA
-                if [ "$(params.event)" = "push" ]; then
+                if [ "${PARAM_EVENT}" = "push" ]; then
                   echo "Get PR Number"
-                  GIT_PR=$(gh pr list --repo $(params.git-url) --search "$(params.revision)" --state merged --json url | jq --raw-output '.[] | .url' | rev | cut -d/ -f1 | rev)
+                  GIT_PR=$(gh pr list --repo "${PARAM_GIT_URL}" --search "${PARAM_REVISION}" --state merged --json url | jq --raw-output '.[] | .url' | rev | cut -d/ -f1 | rev)
                   echo "Get PR SHA"
-                  GIT_SHA=$(gh pr view $GIT_PR --repo $(params.git-url) --json headRefOid --jq .headRefOid)
-                  GIT_SHA_SHORT=$(git rev-parse --short ${GIT_SHA})
+                  GIT_SHA=$(gh pr view "$GIT_PR" --repo "${PARAM_GIT_URL}" --json headRefOid --jq .headRefOid)
+                  GIT_SHA_SHORT=$(git rev-parse --short "${GIT_SHA}")
 
-                  export REPO=$(grep "export KO_DOCKER_REPO" Makefile | cut -d= -f2)
-                  export PR_TAG=$(skopeo list-tags docker://${REPO} | jq -r '.Tags[]' | grep -E ".*-pr-${GIT_PR}-${GIT_SHA_SHORT}$" | sort -r | head -n 1)
+                  REPO=$(grep "export KO_DOCKER_REPO" Makefile | cut -d= -f2)
+                  export REPO
+                  PR_TAG=$(skopeo list-tags docker://"${REPO}" | jq -r '.Tags[]' | grep -E ".*-pr-${GIT_PR}-${GIT_SHA_SHORT}$" | sort -r | head -n 1)
+                  export PR_TAG
                   if [ -z "${PR_TAG}" ]; then
                     echo "Failed to find PR tag for ${GIT_PR}-${GIT_SHA_SHORT}"
                     exit 1
                   fi
                   CURRENT_SHA_SHORT=$(git rev-parse --short HEAD)
-                  export NEW_TAG=$(date -u +"%Y.%m.%d.%H%M%S")-push-${GIT_PR}-${CURRENT_SHA_SHORT}
+                  NEW_TAG=$(date -u +"%Y.%m.%d.%H%M%S")-push-${GIT_PR}-${CURRENT_SHA_SHORT}
+                  export NEW_TAG
 
                   echo "Promoting ${REPO}:${PR_TAG} to ${REPO}:${NEW_TAG}"
-                  skopeo copy docker://${REPO}:${PR_TAG} docker://${REPO}:${NEW_TAG} --multi-arch all --preserve-digests
-                  echo "${REPO}:${NEW_TAG}" > ${WORKSPACE_RESULTS_PATH}
+                  skopeo copy docker://"${REPO}:${PR_TAG}" docker://"${REPO}:${NEW_TAG}" --multi-arch all --preserve-digests
+                  echo "${REPO}:${NEW_TAG}" > "${WORKSPACE_RESULTS_PATH}"
+
+                  calculate_next_version
+                  echo "Promoting ${REPO}:${PR_TAG} to ${REPO}:${NEW_SEMVER}"
+                  skopeo copy docker://"${REPO}:${PR_TAG}" docker://"${REPO}:${NEW_SEMVER}" --multi-arch all --preserve-digests
+
+                  echo "Creating GitHub Release ${NEW_SEMVER}"
+                  gh release create "${NEW_SEMVER}" --repo "${PARAM_GIT_URL}" --title "${NEW_SEMVER}" --generate-notes
                 else
-                  GIT_PR=$(params.pull-request-number)
-                  GIT_SHA=$(params.revision)
-                  GIT_SHA_SHORT=$(git rev-parse --short ${GIT_SHA})
-                  export TAG="$(date -u +"%Y.%m.%d.%H%M%S")-pr-${GIT_PR}-${GIT_SHA_SHORT}"
+                  GIT_PR="${PARAM_PULL_REQUEST_NUMBER}"
+                  GIT_SHA="${PARAM_REVISION}"
+                  GIT_SHA_SHORT=$(git rev-parse --short "${GIT_SHA}")
+                  TAG="$(date -u +"%Y.%m.%d.%H%M%S")-pr-${GIT_PR}-${GIT_SHA_SHORT}"
+                  export TAG
                   make ko-build-pipeline
+
+                  calculate_next_version
                 fi
 
       - name: clair-action
