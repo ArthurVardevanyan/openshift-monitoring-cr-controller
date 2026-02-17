@@ -11,3 +11,5 @@ resources:
   - leader_election_role_binding.yaml
   - role_binding_config_map.yaml
   - role_config_map.yaml
+  - role_binding_pvc.yaml
+  - role_pvc.yaml

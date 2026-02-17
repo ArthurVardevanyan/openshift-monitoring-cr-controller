@@ -1,0 +1,56 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: manager-role-cluster-pvc
+  namespace: openshift-monitoring
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+    resourceNames:
+      - "prometheus-k8s-db-prometheus-k8s-0"
+      - "prometheus-k8s-db-prometheus-k8s-1"
+      - "alertmanager-main-db-alertmanager-main-0"
+      - "alertmanager-main-db-alertmanager-main-1"
+      - "alertmanager-main-db-alertmanager-main-2"
+    verbs:
+      - get
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: manager-role-user-pvc
+  namespace: openshift-user-workload-monitoring
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+    verbs:
+      - list
+      - watch
+  - apiGroups:
+      - ""
+    resources:
+      - persistentvolumeclaims
+    resourceNames:
+      - "prometheus-user-workload-db-prometheus-user-workload-0"
+      - "prometheus-user-workload-db-prometheus-user-workload-1"
+      - "alertmanager-user-workload-db-alertmanager-user-workload-0"
+      - "alertmanager-user-workload-db-alertmanager-user-workload-1"
+      - "alertmanager-user-workload-db-alertmanager-user-workload-2"
+      - "thanos-ruler-user-workload-data-thanos-ruler-user-workload-0"
+      - "thanos-ruler-user-workload-data-thanos-ruler-user-workload-1"
+    verbs:
+      - get
+      - patch
