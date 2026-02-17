@@ -16,6 +16,67 @@ This controller solves these problems by introducing two cluster-scoped CRDs (`C
 2. Creates or updates the corresponding ConfigMap
 3. Compares `volumeClaimTemplate` storage sizes against existing PVCs and expands any that are undersized
 
+## Architecture
+
+```mermaid
+graph TB
+    subgraph UserInput["User Input"]
+        CR["Cluster/User CR<br/>monitoring.arthurvardevanyan.com/v1beta1"]
+    end
+
+    subgraph Controller["Controller"]
+        CTL[openshift-monitoring-cr-controller]
+        Reconcile[Reconciliation Loop]
+        Marshal[Marshal CR to YAML]
+        ConfigMapSync[Sync ConfigMap]
+        PVCCheck[Check PVC Sizes]
+        PVCResize[Resize PVCs if needed]
+    end
+
+    subgraph OSMonitoring["OpenShift Monitoring Namespace"]
+        CM1["cluster-monitoring-config<br/>ConfigMap"]
+        PVC1[Prometheus PVCs]
+        PVC2[Alertmanager PVCs]
+    end
+
+    subgraph OSUserWorkload["OpenShift User Workload Namespace"]
+        CM2["user-workload-monitoring-config<br/>ConfigMap"]
+        PVC3[Prometheus User PVCs]
+        PVC4[Alertmanager User PVCs]
+        PVC5[Thanos Ruler PVCs]
+    end
+
+    subgraph CMOperator["OpenShift Cluster Monitoring Operator"]
+        CMO[Cluster Monitoring Operator]
+        Prom[Prometheus]
+        Alert[Alertmanager]
+    end
+
+    CR -->|Watch| CTL
+    CTL --> Reconcile
+    Reconcile --> Marshal
+    Marshal --> ConfigMapSync
+    ConfigMapSync --> CM1
+    ConfigMapSync --> CM2
+    Reconcile --> PVCCheck
+    PVCCheck -->|If size mismatch| PVCResize
+    PVCResize --> PVC1
+    PVCResize --> PVC2
+    PVCResize --> PVC3
+    PVCResize --> PVC4
+    PVCResize --> PVC5
+    CM1 -->|Watch| CMO
+    CM2 -->|Watch| CMO
+    CMO -->|Deploy/Update| Prom
+    CMO -->|Deploy/Update| Alert
+
+    style CR fill:#d4e9ff,stroke:#1976d2,stroke-width:2px,color:#000
+    style CTL fill:#fff9c4,stroke:#f57c00,stroke-width:2px,color:#000
+    style CM1 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    style CM2 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
+    style CMO fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#000
+```
+
 ## Custom Resources
 
 Both CRDs belong to the API group `monitoring.arthurvardevanyan.com/v1beta1` and are **cluster-scoped** (not namespaced).
