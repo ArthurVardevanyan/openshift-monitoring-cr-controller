@@ -2,6 +2,26 @@
 
 A Kubernetes controller that manages OpenShift cluster monitoring and user workload monitoring configuration as Custom Resources, instead of manually editing ConfigMaps.
 
+- [openshift-monitoring-cr-controller](#openshift-monitoring-cr-controller)
+  - [Overview](#overview)
+  - [Architecture](#architecture)
+    - [Project Structure](#project-structure)
+  - [Custom Resources](#custom-resources)
+    - [`Cluster`](#cluster)
+    - [`User`](#user)
+    - [PVC Reconciliation](#pvc-reconciliation)
+  - [Example](#example)
+  - [Getting Started](#getting-started)
+    - [Prerequisites](#prerequisites)
+    - [Build](#build)
+    - [Deploy](#deploy)
+    - [Remove](#remove)
+    - [Local Development](#local-development)
+    - [Modifying the API](#modifying-the-api)
+    - [RBAC](#rbac)
+    - [Scaffolding Reference](#scaffolding-reference)
+  - [License](#license)
+
 ## Overview
 
 On OpenShift, cluster monitoring is configured via a `cluster-monitoring-config` ConfigMap in the `openshift-monitoring` namespace, and user workload monitoring via a `user-workload-monitoring-config` ConfigMap in the `openshift-user-workload-monitoring` namespace. Managing raw ConfigMaps with embedded YAML has several downsides:
@@ -17,6 +37,8 @@ This controller solves these problems by introducing two cluster-scoped CRDs (`C
 3. Compares `volumeClaimTemplate` storage sizes against existing PVCs and expands any that are undersized
 
 ## Architecture
+
+This project follows the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) and is scaffolded with [Kubebuilder](https://book.kubebuilder.io/).
 
 ```mermaid
 graph TB
@@ -75,6 +97,21 @@ graph TB
     style CM1 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
     style CM2 fill:#c8e6c9,stroke:#388e3c,stroke-width:2px,color:#000
     style CMO fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px,color:#000
+```
+
+### Project Structure
+
+```text
+api/v1beta1/          # CRD type definitions (Cluster, User)
+controllers/
+  cluster_controller.go   # Reconciler for the Cluster CR
+  user_controller.go      # Reconciler for the User CR
+  helpers.go              # Shared utilities (PVC reconciliation, helpers)
+config/
+  crd/                # Generated CRD manifests
+  rbac/               # RBAC roles and bindings
+  manager/            # Controller Deployment
+  overlays/default/   # Production kustomize overlay
 ```
 
 ## Custom Resources
@@ -256,23 +293,6 @@ After editing types in `api/v1beta1/`, regenerate manifests:
 
 ```sh
 make manifests generate
-```
-
-## Architecture
-
-This project follows the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) and is scaffolded with [Kubebuilder](https://book.kubebuilder.io/).
-
-```text
-api/v1beta1/          # CRD type definitions (Cluster, User)
-controllers/
-  cluster_controller.go   # Reconciler for the Cluster CR
-  user_controller.go      # Reconciler for the User CR
-  helpers.go              # Shared utilities (PVC reconciliation, helpers)
-config/
-  crd/                # Generated CRD manifests
-  rbac/               # RBAC roles and bindings
-  manager/            # Controller Deployment
-  overlays/default/   # Production kustomize overlay
 ```
 
 ### RBAC
