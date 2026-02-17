@@ -177,6 +177,23 @@ func (r *UserReconciler) Reconcile(reconcilerContext context.Context, req ctrl.R
 		log.V(1).Info("Create ConfigMap")
 	}
 
+	// Reconcile PVC sizes to match volumeClaimTemplate
+	if monitoring.Spec.Prometheus.VolumeClaimTemplate != nil {
+		if err := reconcilePVCSize(reconcilerContext, r.Client, namespace, "prometheus-user-workload-db-prometheus-user-workload-", monitoring.Spec.Prometheus.VolumeClaimTemplate); err != nil {
+			log.Error(err, "Unable to reconcile Prometheus PVC sizes")
+		}
+	}
+	if monitoring.Spec.Alertmanager.VolumeClaimTemplate != nil {
+		if err := reconcilePVCSize(reconcilerContext, r.Client, namespace, "alertmanager-user-workload-db-alertmanager-user-workload-", monitoring.Spec.Alertmanager.VolumeClaimTemplate); err != nil {
+			log.Error(err, "Unable to reconcile Alertmanager PVC sizes")
+		}
+	}
+	if monitoring.Spec.ThanosRuler.VolumeClaimTemplate != nil {
+		if err := reconcilePVCSize(reconcilerContext, r.Client, namespace, "thanos-ruler-user-workload-data-thanos-ruler-user-workload-", monitoring.Spec.ThanosRuler.VolumeClaimTemplate); err != nil {
+			log.Error(err, "Unable to reconcile ThanosRuler PVC sizes")
+		}
+	}
+
 	return ctrl.Result{}, nil
 }
 

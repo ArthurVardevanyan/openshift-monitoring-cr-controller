@@ -1,111 +1,234 @@
 # openshift-monitoring-cr-controller
 
-This is an abstraction to convert the openshift monitoring, and openshift user workload monitoring configmaps into custom resources.
+A Kubernetes controller that manages OpenShift cluster monitoring and user workload monitoring configuration as Custom Resources, instead of manually editing ConfigMaps.
 
-The Controller Inputs Two Custom Resources, and Converts them to ConfigMaps, for the cluster operator to pickup.
+## Overview
 
-## Incepting Controller
+On OpenShift, cluster monitoring is configured via a `cluster-monitoring-config` ConfigMap in the `openshift-monitoring` namespace, and user workload monitoring via a `user-workload-monitoring-config` ConfigMap in the `openshift-user-workload-monitoring` namespace. Managing raw ConfigMaps with embedded YAML has several downsides:
 
-How to Repo was setup
+- No schema validation — typos and invalid fields are silently accepted
+- No straightforward way to track changes through GitOps tooling
+- `volumeClaimTemplate` changes in the ConfigMap do not resize existing PVCs
 
-- <https://book.kubebuilder.io/cronjob-tutorial/cronjob-tutorial.html>
-- <https://book.kubebuilder.io/cronjob-tutorial/new-api.html>
+This controller solves these problems by introducing two cluster-scoped CRDs (`Cluster` and `User`) that act as a typed, validated abstraction over those ConfigMaps. On each reconciliation the controller:
 
-```bash
-kubebuilder init --domain arthurvardevanyan.com --repo github.com/ArthurVardevanyan/openshift-monitoring-cr-controller
-kubebuilder create api --group monitoring --version v1beta1 --kind Cluster --namespaced=false
-kubebuilder create api --group monitoring --version v1beta1 --kind User --namespaced=false
+1. Marshals the CR spec into the expected ConfigMap YAML format
+2. Creates or updates the corresponding ConfigMap
+3. Compares `volumeClaimTemplate` storage sizes against existing PVCs and expands any that are undersized
+
+## Custom Resources
+
+Both CRDs belong to the API group `monitoring.arthurvardevanyan.com/v1beta1` and are **cluster-scoped** (not namespaced).
+
+### `Cluster`
+
+Must be named `cluster-monitoring-config`. Maps to the ConfigMap of the same name in `openshift-monitoring`.
+
+| Field                   | Description                                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------------------------- |
+| `enableUserWorkload`    | Enable user workload monitoring                                                                    |
+| `prometheusOperator`    | Prometheus Operator settings (logLevel, nodeSelector, tolerations)                                 |
+| `prometheusK8s`         | Prometheus settings (retention, resources, storage, externalLabels, additionalAlertmanagerConfigs) |
+| `alertmanagerMain`      | Alertmanager settings (resources, storage, enableUserAlertmanagerConfig)                           |
+| `kubeStateMetrics`      | kube-state-metrics settings                                                                        |
+| `openshiftStateMetrics` | openshift-state-metrics settings                                                                   |
+| `monitoringPlugin`      | Monitoring console plugin settings                                                                 |
+| `metricsServer`         | Metrics server settings                                                                            |
+| `telemeterClient`       | Telemeter client settings                                                                          |
+| `thanosQuerier`         | Thanos Querier settings (resources, nodeSelector, tolerations)                                     |
+
+### `User`
+
+Must be named `user-workload-monitoring-config`. Maps to the ConfigMap of the same name in `openshift-user-workload-monitoring`.
+
+| Field                | Description                                                              |
+| -------------------- | ------------------------------------------------------------------------ |
+| `alertmanager`       | Alertmanager settings (enabled, enableAlertmanagerConfig, storage)       |
+| `prometheusOperator` | Prometheus Operator settings (logLevel, nodeSelector, tolerations)       |
+| `prometheus`         | Prometheus settings (retention, enforcedSampleLimit, resources, storage) |
+| `thanosRuler`        | Thanos Ruler settings (resources, storage)                               |
+
+### PVC Reconciliation
+
+When a `volumeClaimTemplate` is specified on a component, the controller will list PVCs in the target namespace matching the expected StatefulSet naming pattern (e.g. `prometheus-k8s-db-prometheus-k8s-*`) and patch any PVC whose current size is smaller than the desired size. This allows storage expansion without manually editing PVCs.
+
+> **Note:** The underlying StorageClass must support volume expansion (`allowVolumeExpansion: true`).
+
+## Example
+
+```yaml
+apiVersion: monitoring.arthurvardevanyan.com/v1beta1
+kind: Cluster
+metadata:
+  name: cluster-monitoring-config
+spec:
+  enableUserWorkload: true
+  prometheusK8s:
+    retention: 10d
+    resources:
+      requests:
+        cpu: 1
+        memory: 4Gi
+      limits:
+        cpu: 3
+        memory: 8Gi
+    volumeClaimTemplate:
+      spec:
+        storageClassName: longhorn-static
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 40Gi
+  alertmanagerMain:
+    enableUserAlertmanagerConfig: false
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 30m
+        memory: 64Mi
+    volumeClaimTemplate:
+      spec:
+        storageClassName: longhorn-static
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 50Mi
+  thanosQuerier:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 350m
+        memory: 768Mi
+---
+apiVersion: monitoring.arthurvardevanyan.com/v1beta1
+kind: User
+metadata:
+  name: user-workload-monitoring-config
+spec:
+  alertmanager:
+    enabled: true
+    enableAlertmanagerConfig: true
+  prometheus:
+    retention: 26d
+    resources:
+      requests:
+        cpu: 50m
+        memory: 512Mi
+      limits:
+        cpu: 250m
+        memory: 1024Mi
+    volumeClaimTemplate:
+      spec:
+        storageClassName: longhorn-static
+        volumeMode: Filesystem
+        resources:
+          requests:
+            storage: 5Gi
+  thanosRuler:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 64Mi
+      limits:
+        cpu: 50m
+        memory: 256Mi
 ```
 
 ## Getting Started
 
-### Building Image
+### Prerequisites
 
-Build and push your image to the location specified by `IMG`:
+- Go 1.25+
+- Access to an OpenShift cluster
+- `kubectl` or `oc` configured with cluster-admin privileges
 
-```bash
-go get -u
-go mod tidy
-```
+### Build
 
-```bash
+```sh
+# Update dependencies
+go get -u && go mod tidy
+
+# Run tests and build the binary
+make
+
+# Build and push the container image with ko
 make ko-build
 ```
 
-### Running on the cluster
-
-1. Install Instances of Custom Resources:
+### Deploy
 
 ```sh
-kubectl apply -f config/samples/
+# Install CRDs
+make install
+
+# Deploy the controller
+make deploy IMG=<registry>/openshift-monitoring-cr-controller:<tag>
+
+# Apply your monitoring configuration
+kubectl apply -f sample/monitoring.yaml
 ```
 
-2. Build and push your image to the location specified by `IMG`:
+### Remove
 
 ```sh
-make docker-build docker-push IMG=<some-registry>/openshift-monitoring-cr-controller:tag
-```
+# Undeploy the controller
+make undeploy
 
-3. Deploy the controller to the cluster with the image specified by `IMG`:
-
-```sh
-make deploy IMG=<some-registry>/openshift-monitoring-cr-controller:tag
-```
-
-### Uninstall CRDs
-
-To delete the CRDs from the cluster:
-
-```sh
+# Remove CRDs
 make uninstall
 ```
 
-### Undeploy controller
-
-UnDeploy the controller from the cluster:
+### Local Development
 
 ```sh
-make undeploy
+# Install CRDs and run the controller locally
+make install run
 ```
 
-## Contributing
+### Modifying the API
 
-// TODO(user): Add detailed information on how you would like others to contribute to this project
-
-### How it works
-
-This project aims to follow the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/).
-
-It uses [Controllers](https://kubernetes.io/docs/concepts/architecture/controller/),
-which provide a reconcile function responsible for synchronizing resources until the desired state is reached on the cluster.
-
-### Test It Out
-
-1. Install the CRDs into the cluster:
+After editing types in `api/v1beta1/`, regenerate manifests:
 
 ```sh
-make install
+make manifests generate
 ```
 
-2. Run your controller (this will run in the foreground, so switch to a new terminal if you want to leave it running):
+## Architecture
+
+This project follows the Kubernetes [Operator pattern](https://kubernetes.io/docs/concepts/extend-kubernetes/operator/) and is scaffolded with [Kubebuilder](https://book.kubebuilder.io/).
+
+```text
+api/v1beta1/          # CRD type definitions (Cluster, User)
+controllers/
+  cluster_controller.go   # Reconciler for the Cluster CR
+  user_controller.go      # Reconciler for the User CR
+  helpers.go              # Shared utilities (PVC reconciliation, helpers)
+config/
+  crd/                # Generated CRD manifests
+  rbac/               # RBAC roles and bindings
+  manager/            # Controller Deployment
+  overlays/default/   # Production kustomize overlay
+```
+
+### RBAC
+
+The controller uses least-privilege RBAC:
+
+- **ClusterRole** `manager-role` — CRUD on `Cluster` and `User` CRs
+- **ClusterRole** `manager-role-config-map` — Scoped to the two specific ConfigMap names, bound via RoleBindings in each namespace
+- **Role** `manager-role-cluster-pvc` / `manager-role-user-pvc` — PVC `get`/`patch` scoped by `resourceNames` to the expected StatefulSet PVC names in each namespace
+
+### Scaffolding Reference
 
 ```sh
-make run
+kubebuilder init --domain arthurvardevanyan.com --repo github.com/ArthurVardevanyan/openshift-monitoring-cr-controller
+kubebuilder create api --group monitoring --version v1beta1 --kind Cluster --namespaced=false
+kubebuilder create api --group monitoring --version v1beta1 --kind User --namespaced=false
 ```
-
-**NOTE:** You can also run this in one step by running: `make install run`
-
-### Modifying the API definitions
-
-If you are editing the API definitions, generate the manifests such as CRs or CRDs using:
-
-```sh
-make manifests
-```
-
-**NOTE:** Run `make --help` for more information on all potential `make` targets
-
-More information can be found via the [Kubebuilder Documentation](https://book.kubebuilder.io/introduction.html)
 
 ## License
 
@@ -115,7 +238,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+<http://www.apache.org/licenses/LICENSE-2.0>
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,

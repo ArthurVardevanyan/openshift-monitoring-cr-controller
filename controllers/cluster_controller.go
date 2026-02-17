@@ -32,24 +32,10 @@ import (
 	monitoringv1beta1 "github.com/ArthurVardevanyan/openshift-monitoring-cr-controller/api/v1beta1"
 )
 
-func BoolPointer(b bool) *bool {
-	return &b
-}
-
 // ClusterReconciler reconciles a Cluster object
 type ClusterReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-}
-
-func removeMetadata(data map[string]interface{}) {
-	for key, value := range data {
-		if key == "metadata" {
-			delete(data, "metadata")
-		} else if nestedMap, ok := value.(map[string]interface{}); ok {
-			removeMetadata(nestedMap)
-		}
-	}
 }
 
 //+kubebuilder:rbac:groups=monitoring.arthurvardevanyan.com,resources=clusters,verbs=get;list;watch;create;update;patch;delete
@@ -189,6 +175,18 @@ func (r *ClusterReconciler) Reconcile(reconcilerContext context.Context, req ctr
 		r.Update(reconcilerContext, &configMap)
 	} else {
 		log.V(1).Info("Create ConfigMap")
+	}
+
+	// Reconcile PVC sizes to match volumeClaimTemplate
+	if monitoring.Spec.PrometheusK8S.VolumeClaimTemplate != nil {
+		if err := reconcilePVCSize(reconcilerContext, r.Client, namespace, "prometheus-k8s-db-prometheus-k8s-", monitoring.Spec.PrometheusK8S.VolumeClaimTemplate); err != nil {
+			log.Error(err, "Unable to reconcile Prometheus PVC sizes")
+		}
+	}
+	if monitoring.Spec.AlertmanagerMain.VolumeClaimTemplate != nil {
+		if err := reconcilePVCSize(reconcilerContext, r.Client, namespace, "alertmanager-main-db-alertmanager-main-", monitoring.Spec.AlertmanagerMain.VolumeClaimTemplate); err != nil {
+			log.Error(err, "Unable to reconcile Alertmanager PVC sizes")
+		}
 	}
 
 	return ctrl.Result{}, nil

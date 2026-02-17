@@ -23,3 +23,43 @@ patches:
       - op: replace
         path: /subjects/0/name
         value: openshift-monitoring-cr-controller-manager
+  - target:
+      kind: Role
+      name: openshift-monitoring-cr-manager-role-cluster-pvc
+    patch: |-
+      - op: replace
+        path: /metadata/namespace
+        value: openshift-monitoring
+  - target:
+      kind: Role
+      name: openshift-monitoring-cr-manager-role-user-pvc
+    patch: |-
+      - op: replace
+        path: /metadata/namespace
+        value: openshift-user-workload-monitoring
+  - target:
+      kind: RoleBinding
+      name: openshift-monitoring-cr-manager-rolebinding-cluster-pvc
+    patch: |-
+      - op: replace
+        path: /metadata/namespace
+        value: openshift-monitoring
+      - op: replace
+        path: /roleRef/name
+        value: openshift-monitoring-cr-manager-role-cluster-pvc
+  - target:
+      kind: RoleBinding
+      name: openshift-monitoring-cr-manager-rolebinding-user-pvc
+    patch: |-
+      - op: replace
+        path: /metadata/namespace
+        value: openshift-user-workload-monitoring
+      - op: replace
+        path: /roleRef/name
+        value: openshift-monitoring-cr-manager-role-user-pvc
+      - op: replace
+        path: /subjects/0/namespace
+        value: openshift-monitoring
+      - op: replace
+        path: /subjects/0/name
+        value: openshift-monitoring-cr-controller-manager
