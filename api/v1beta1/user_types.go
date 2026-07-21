@@ -33,28 +33,31 @@ type UserSpec struct {
 }
 
 type Alertmanager struct {
-	LogLevel                 string                                `json:"logLevel,omitempty"`
-	Enabled                  bool                                  `json:"enabled,omitempty"`
-	EnableAlertmanagerConfig bool                                  `json:"enableAlertmanagerConfig,omitempty"`
-	NodeSelector             map[string]string                     `json:"nodeSelector,omitempty"`
-	Tolerations              []corev1.Toleration                   `json:"tolerations,omitempty"`
-	VolumeClaimTemplate      *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
+	LogLevel                  string                                `json:"logLevel,omitempty"`
+	Enabled                   bool                                  `json:"enabled,omitempty"`
+	EnableAlertmanagerConfig  bool                                  `json:"enableAlertmanagerConfig,omitempty"`
+	NodeSelector              map[string]string                     `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration                   `json:"tolerations,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint     `json:"topologySpreadConstraints,omitempty"`
+	VolumeClaimTemplate       *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
 }
 type Prometheus struct {
-	LogLevel            string                                `json:"logLevel,omitempty"`
-	NodeSelector        map[string]string                     `json:"nodeSelector,omitempty"`
-	Tolerations         []corev1.Toleration                   `json:"tolerations,omitempty"`
-	Retention           string                                `json:"retention,omitempty"`
-	EnforcedSampleLimit int                                   `json:"enforcedSampleLimit,omitempty"`
-	Resources           *corev1.ResourceRequirements          `json:"resources,omitempty"`
-	VolumeClaimTemplate *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
+	LogLevel                  string                                `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                     `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration                   `json:"tolerations,omitempty"`
+	Retention                 string                                `json:"retention,omitempty"`
+	EnforcedSampleLimit       int                                   `json:"enforcedSampleLimit,omitempty"`
+	Resources                 *corev1.ResourceRequirements          `json:"resources,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint     `json:"topologySpreadConstraints,omitempty"`
+	VolumeClaimTemplate       *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
 }
 type ThanosRuler struct {
-	LogLevel            string                                `json:"logLevel,omitempty"`
-	NodeSelector        map[string]string                     `json:"nodeSelector,omitempty"`
-	Tolerations         []corev1.Toleration                   `json:"tolerations,omitempty"`
-	Resources           *corev1.ResourceRequirements          `json:"resources,omitempty"`
-	VolumeClaimTemplate *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
+	LogLevel                  string                                `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                     `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration                   `json:"tolerations,omitempty"`
+	Resources                 *corev1.ResourceRequirements          `json:"resources,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint     `json:"topologySpreadConstraints,omitempty"`
+	VolumeClaimTemplate       *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
 }
 
 // UserStatus defines the observed state of User

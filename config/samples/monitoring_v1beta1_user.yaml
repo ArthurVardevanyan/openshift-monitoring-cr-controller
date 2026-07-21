@@ -9,4 +9,17 @@ metadata:
     app.kubernetes.io/created-by: openshift-monitoring-cr-controller
   name: user-sample
 spec:
-  # TODO(user): Add fields here
+  prometheus:
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: prometheus
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: prometheus

@@ -5,15 +5,13 @@ WORKSPACE_RESULTS_PATH ?= /tmp/image
 IMG ?= registry.arthurvardevanyan.com/homelab/openshift-monitoring-cr-controller:$(TAG)
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 # https://github.com/kubernetes-sigs/controller-tools/blob/main/envtest-releases.yaml
-ENVTEST_K8S_VERSION = 1.35.0
+ENVTEST_K8S_VERSION = 1.36.2
 ## Tool Versions
 # https://github.com/kubernetes-sigs/kustomize/releases
 KUSTOMIZE_VERSION ?= v5.8.1
 # https://github.com/kubernetes-sigs/controller-tools/releases
-CONTROLLER_TOOLS_VERSION ?= v0.20.1
+CONTROLLER_TOOLS_VERSION ?= v0.21.0
 export KO_DOCKER_REPO=$(shell echo $(IMG) | cut -d: -f1)
-# https://catalog.redhat.com/software/containers/ubi9/ubi-micro/615bdf943f6014fa45ae1b58?architecture=amd64&image=662a8edd22c80ead7411ec6c&container-tabs=overview
-export KO_DEFAULTBASEIMAGE=cgr.dev/chainguard/static
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -81,12 +79,12 @@ test-pipeline: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 
 .PHONY: ko-build
-ko-build: test ## Build docker image with the manager.
-	ko build --platform=linux/amd64 --bare --sbom none --image-label quay.expires-after="${EXPIRE}" --tags "${TAG}"
+ko-build: test ## Build multi-arch docker image with the manager.
+	ko build --bare --sbom none --image-label quay.expires-after="${EXPIRE}" --tags "${TAG}"
 
 .PHONY: ko-build-pipeline
-ko-build-pipeline: test-pipeline ## Build docker image with the manager.
-	ko build --platform=linux/amd64 --bare --sbom none --image-label quay.expires-after="${EXPIRE}" --tags "${TAG}"
+ko-build-pipeline: test-pipeline ## Build multi-arch docker image with the manager.
+	ko build --bare --sbom none --image-label quay.expires-after="${EXPIRE}" --tags "${TAG}"
 	echo "${KO_DOCKER_REPO}:${TAG}" > "${WORKSPACE_RESULTS_PATH}"
 
 .PHONY: build

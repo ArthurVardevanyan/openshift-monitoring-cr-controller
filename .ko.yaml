@@ -1,0 +1,19 @@
+# Check latest: skopeo inspect --raw docker://registry.access.redhat.com/hi/static:latest | skopeo manifest-digest /dev/stdin
+defaultBaseImage: registry.access.redhat.com/hi/static@sha256:4c1752f4eabb162d15e26f84909725a3ef516f5753211fcb6ad7d76e6fd519e5
+
+defaultPlatforms:
+  - linux/amd64
+  - linux/arm64
+
+defaultLdflags:
+  - -s
+  - -w
+
+defaultLabels:
+  org.opencontainers.image.title: openshift-monitoring-cr-controller
+  org.opencontainers.image.description: Kubernetes controller that manages OpenShift cluster monitoring custom resources
+  org.opencontainers.image.url: https://github.com/ArthurVardevanyan/openshift-monitoring-cr-controller
+  org.opencontainers.image.documentation: https://github.com/ArthurVardevanyan/openshift-monitoring-cr-controller
+  org.opencontainers.image.source: https://github.com/ArthurVardevanyan/openshift-monitoring-cr-controller
+  org.opencontainers.image.vendor: ArthurVardevanyan
+  org.opencontainers.image.base.name: registry.access.redhat.com/hi/static

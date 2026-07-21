@@ -50,27 +50,32 @@ type AlertmanagerMain struct {
 	NodeSelector                 map[string]string                     `json:"nodeSelector,omitempty"`
 	Resources                    *corev1.ResourceRequirements          `json:"resources,omitempty"`
 	Tolerations                  []corev1.Toleration                   `json:"tolerations,omitempty"`
+	TopologySpreadConstraints    []corev1.TopologySpreadConstraint     `json:"topologySpreadConstraints,omitempty"`
 	VolumeClaimTemplate          *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
 }
 type MonitoringPlugin struct {
-	LogLevel     string              `json:"logLevel,omitempty"`
-	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
-	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+	LogLevel                  string                            `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                 `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration               `json:"tolerations,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 type MetricsServer struct {
-	LogLevel     string              `json:"logLevel,omitempty"`
-	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
-	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+	LogLevel                  string                            `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                 `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration               `json:"tolerations,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 type KubeStateMetrics struct {
-	LogLevel     string              `json:"logLevel,omitempty"`
-	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
-	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+	LogLevel                  string                            `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                 `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration               `json:"tolerations,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 type OpenshiftStateMetrics struct {
-	LogLevel     string              `json:"logLevel,omitempty"`
-	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
-	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+	LogLevel                  string                            `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                 `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration               `json:"tolerations,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 type BearerToken struct {
 	Key  string `json:"key,omitempty"`
@@ -102,12 +107,14 @@ type PrometheusK8S struct {
 	Resources                     *corev1.ResourceRequirements          `json:"resources,omitempty"`
 	Retention                     string                                `json:"retention,omitempty"`
 	Tolerations                   []corev1.Toleration                   `json:"tolerations,omitempty"`
+	TopologySpreadConstraints     []corev1.TopologySpreadConstraint     `json:"topologySpreadConstraints,omitempty"`
 	VolumeClaimTemplate           *corev1.PersistentVolumeClaimTemplate `json:"volumeClaimTemplate,omitempty"`
 }
 type PrometheusOperator struct {
-	LogLevel     string              `json:"logLevel,omitempty"`
-	NodeSelector map[string]string   `json:"nodeSelector,omitempty"`
-	Tolerations  []corev1.Toleration `json:"tolerations,omitempty"`
+	LogLevel                  string                            `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                 `json:"nodeSelector,omitempty"`
+	Tolerations               []corev1.Toleration               `json:"tolerations,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 type TelemeterClient struct {
 	LogLevel           string              `json:"logLevel,omitempty"`
@@ -118,10 +125,11 @@ type TelemeterClient struct {
 	Tolerations        []corev1.Toleration `json:"tolerations,omitempty"`
 }
 type ThanosQuerier struct {
-	LogLevel     string                       `json:"logLevel,omitempty"`
-	NodeSelector map[string]string            `json:"nodeSelector,omitempty"`
-	Resources    *corev1.ResourceRequirements `json:"resources,omitempty"`
-	Tolerations  []corev1.Toleration          `json:"tolerations,omitempty"`
+	LogLevel                  string                            `json:"logLevel,omitempty"`
+	NodeSelector              map[string]string                 `json:"nodeSelector,omitempty"`
+	Resources                 *corev1.ResourceRequirements      `json:"resources,omitempty"`
+	Tolerations               []corev1.Toleration               `json:"tolerations,omitempty"`
+	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
 }
 
 // ClusterStatus defines the observed state of Cluster
